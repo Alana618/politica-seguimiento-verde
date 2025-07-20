@@ -99,13 +99,13 @@ const Layout = ({ children }: LayoutProps) => {
                           <ChevronDown className="w-4 h-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-card border border-border shadow-lg">
+                      <DropdownMenuContent className="bg-background border border-border shadow-lg z-50">
                         {item.subItems.map((subItem) => (
                           <DropdownMenuItem key={subItem.href} asChild>
                             <Link
                               to={subItem.href}
                               className={cn(
-                                "flex items-center px-4 py-2 hover:bg-muted cursor-pointer",
+                                "flex items-center px-4 py-2 hover:bg-muted cursor-pointer w-full",
                                 location.pathname === subItem.href && "bg-muted"
                               )}
                             >

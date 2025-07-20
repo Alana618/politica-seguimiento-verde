@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import PlanDashboard from "./pages/plan/PlanDashboard";
+import Ejes from "./pages/plan/Ejes";
+import Sectores from "./pages/plan/Sectores";
+import Programas from "./pages/plan/Programas";
 
 const queryClient = new QueryClient();
 
@@ -18,9 +22,10 @@ const App = () => (
           <Route path="/" element={<Index />} />
           
           {/* Plan de Desarrollo Routes */}
-          <Route path="/plan/ejes" element={<div>Ejes Estratégicos</div>} />
-          <Route path="/plan/sectores" element={<div>Sectores</div>} />
-          <Route path="/plan/programas" element={<div>Programas</div>} />
+          <Route path="/plan" element={<PlanDashboard />} />
+          <Route path="/plan/ejes" element={<Ejes />} />
+          <Route path="/plan/sectores" element={<Sectores />} />
+          <Route path="/plan/programas" element={<Programas />} />
           <Route path="/plan/proyectos" element={<div>Proyectos</div>} />
           <Route path="/plan/metas" element={<div>Metas</div>} />
           
