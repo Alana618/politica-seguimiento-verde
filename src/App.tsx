@@ -9,6 +9,12 @@ import PlanDashboard from "./pages/plan/PlanDashboard";
 import Ejes from "./pages/plan/Ejes";
 import Sectores from "./pages/plan/Sectores";
 import Programas from "./pages/plan/Programas";
+import Proyectos from "./pages/plan/Proyectos";
+import Metas from "./pages/plan/Metas";
+import Politicas from "./pages/Politicas";
+import Secretarias from "./pages/catalogos/Secretarias";
+import Gerencias from "./pages/catalogos/Gerencias";
+import Seguimiento from "./pages/Seguimiento";
 
 const queryClient = new QueryClient();
 
@@ -26,18 +32,18 @@ const App = () => (
           <Route path="/plan/ejes" element={<Ejes />} />
           <Route path="/plan/sectores" element={<Sectores />} />
           <Route path="/plan/programas" element={<Programas />} />
-          <Route path="/plan/proyectos" element={<div>Proyectos</div>} />
-          <Route path="/plan/metas" element={<div>Metas</div>} />
+          <Route path="/plan/proyectos" element={<Proyectos />} />
+          <Route path="/plan/metas" element={<Metas />} />
           
           {/* Políticas Públicas Routes */}
-          <Route path="/politicas" element={<div>Políticas Públicas</div>} />
+          <Route path="/politicas" element={<Politicas />} />
           
           {/* Catálogos Routes */}
-          <Route path="/catalogos/secretarias" element={<div>Catálogo de Secretarías</div>} />
-          <Route path="/catalogos/gerencias" element={<div>Catálogo de Gerencias</div>} />
+          <Route path="/catalogos/secretarias" element={<Secretarias />} />
+          <Route path="/catalogos/gerencias" element={<Gerencias />} />
           
           {/* Seguimiento Route */}
-          <Route path="/seguimiento" element={<div>Seguimiento</div>} />
+          <Route path="/seguimiento" element={<Seguimiento />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

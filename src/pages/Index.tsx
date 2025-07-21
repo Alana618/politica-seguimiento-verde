@@ -4,6 +4,7 @@ import HierarchyCard from '@/components/dashboard/HierarchyCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Link } from 'react-router-dom';
 import { 
   Target, 
   FileText, 
@@ -82,14 +83,18 @@ const Index = () => {
                 con estructura jerárquica completa y sistema de ponderaciones.
               </p>
               <div className="flex space-x-4 animate-scale-in">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Comenzar Gestión
-                </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                  Ver Políticas
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </Button>
+                <Link to="/plan">
+                  <Button size="lg" className="bg-white text-primary hover:bg-white/90">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Comenzar Gestión
+                  </Button>
+                </Link>
+                <Link to="/politicas">
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+                    Ver Políticas
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -172,22 +177,30 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-20 flex-col space-y-2">
-                <Building2 className="w-6 h-6" />
-                <span className="text-sm">Nuevo Proyecto</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col space-y-2">
-                <Target className="w-6 h-6" />
-                <span className="text-sm">Crear Meta</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col space-y-2">
-                <FileText className="w-6 h-6" />
-                <span className="text-sm">Revisar Política</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col space-y-2">
-                <TrendingUp className="w-6 h-6" />
-                <span className="text-sm">Ver Reportes</span>
-              </Button>
+              <Link to="/plan/proyectos">
+                <Button variant="outline" className="h-20 flex-col space-y-2 w-full">
+                  <Building2 className="w-6 h-6" />
+                  <span className="text-sm">Nuevo Proyecto</span>
+                </Button>
+              </Link>
+              <Link to="/plan/metas">
+                <Button variant="outline" className="h-20 flex-col space-y-2 w-full">
+                  <Target className="w-6 h-6" />
+                  <span className="text-sm">Crear Meta</span>
+                </Button>
+              </Link>
+              <Link to="/politicas">
+                <Button variant="outline" className="h-20 flex-col space-y-2 w-full">
+                  <FileText className="w-6 h-6" />
+                  <span className="text-sm">Revisar Política</span>
+                </Button>
+              </Link>
+              <Link to="/seguimiento">
+                <Button variant="outline" className="h-20 flex-col space-y-2 w-full">
+                  <TrendingUp className="w-6 h-6" />
+                  <span className="text-sm">Ver Reportes</span>
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
