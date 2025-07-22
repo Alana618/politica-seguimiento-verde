@@ -354,7 +354,6 @@ const Proyectos = () => {
               <SelectValue placeholder="Filtrar por programa" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los programas</SelectItem>
               {programas.map((programa) => (
                 <SelectItem key={programa.id} value={programa.id}>
                   {programa.nombre}

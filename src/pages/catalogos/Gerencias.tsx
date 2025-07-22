@@ -291,7 +291,6 @@ const Gerencias = () => {
               <SelectValue placeholder="Filtrar por secretaría" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las secretarías</SelectItem>
               {secretarias.map((secretaria) => (
                 <SelectItem key={secretaria.id} value={secretaria.id}>
                   {secretaria.nombre}
