@@ -6,37 +6,26 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, FileText, Search, Edit, Trash2, Target } from 'lucide-react';
+import { Plus, FileText, Search, Edit, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 interface Politica {
   id: string;
   nombre: string;
-  descripcion: string;
-  objetivo_general: string;
-  secretaria_responsable_id: string;
-  estado: string;
-  fecha_inicio: string;
-  fecha_fin: string;
-  ponderacion_total: number;
-  secretaria?: { nombre: string };
-}
-
-interface Secretaria {
-  id: string;
-  nombre: string;
+  descripcion?: string;
+  numero_politica: number;
+  ponderacion_total?: number;
+  created_at: string;
+  updated_at: string;
 }
 
 const Politicas = () => {
   const [politicas, setPoliticas] = useState<Politica[]>([]);
-  const [secretarias, setSecretarias] = useState<Secretaria[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSecretaria, setSelectedSecretaria] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPolitica, setEditingPolitica] = useState<Politica | null>(null);
   const { toast } = useToast();
@@ -44,26 +33,18 @@ const Politicas = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
-    objetivo_general: '',
-    secretaria_responsable_id: '',
-    estado: 'formulacion',
-    fecha_inicio: '',
-    fecha_fin: ''
+    numero_politica: 1
   });
 
   useEffect(() => {
     fetchPoliticas();
-    fetchSecretarias();
   }, []);
 
   const fetchPoliticas = async () => {
     try {
       const { data, error } = await supabase
         .from('politicas')
-        .select(`
-          *,
-          secretaria:secretarias(nombre)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -76,20 +57,6 @@ const Politicas = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchSecretarias = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('secretarias')
-        .select('id, nombre')
-        .order('nombre');
-
-      if (error) throw error;
-      setSecretarias(data || []);
-    } catch (error) {
-      console.error('Error fetching secretarias:', error);
     }
   };
 
@@ -137,12 +104,8 @@ const Politicas = () => {
     setEditingPolitica(politica);
     setFormData({
       nombre: politica.nombre,
-      descripcion: politica.descripcion,
-      objetivo_general: politica.objetivo_general,
-      secretaria_responsable_id: politica.secretaria_responsable_id,
-      estado: politica.estado,
-      fecha_inicio: politica.fecha_inicio,
-      fecha_fin: politica.fecha_fin
+      descripcion: politica.descripcion || '',
+      numero_politica: politica.numero_politica
     });
     setIsDialogOpen(true);
   };
@@ -177,11 +140,7 @@ const Politicas = () => {
     setFormData({
       nombre: '',
       descripcion: '',
-      objetivo_general: '',
-      secretaria_responsable_id: '',
-      estado: 'formulacion',
-      fecha_inicio: '',
-      fecha_fin: ''
+      numero_politica: 1
     });
     setEditingPolitica(null);
     setIsDialogOpen(false);
@@ -189,21 +148,9 @@ const Politicas = () => {
 
   const filteredPoliticas = politicas.filter(politica => {
     const matchesSearch = politica.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         politica.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSecretaria = !selectedSecretaria || politica.secretaria_responsable_id === selectedSecretaria;
-    return matchesSearch && matchesSecretaria;
+                         (politica.descripcion && politica.descripcion.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesSearch;
   });
-
-  const getEstadoBadgeVariant = (estado: string) => {
-    switch (estado) {
-      case 'formulacion': return 'secondary';
-      case 'aprobacion': return 'outline';
-      case 'implementacion': return 'default';
-      case 'evaluacion': return 'outline';
-      case 'finalizada': return 'outline';
-      default: return 'secondary';
-    }
-  };
 
   if (loading) {
     return (
@@ -265,73 +212,15 @@ const Politicas = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="objetivo_general">Objetivo General</Label>
-                  <Textarea
-                    id="objetivo_general"
-                    value={formData.objetivo_general}
-                    onChange={(e) => setFormData({...formData, objetivo_general: e.target.value})}
-                    rows={2}
+                  <Label htmlFor="numero_politica">Número de Política</Label>
+                  <Input
+                    id="numero_politica"
+                    type="number"
+                    value={formData.numero_politica}
+                    onChange={(e) => setFormData({...formData, numero_politica: parseInt(e.target.value) || 1})}
+                    required
+                    min="1"
                   />
-                </div>
-                
-                <div>
-                  <Label htmlFor="secretaria_responsable_id">Secretaría Responsable</Label>
-                  <Select
-                    value={formData.secretaria_responsable_id}
-                    onValueChange={(value) => setFormData({...formData, secretaria_responsable_id: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar secretaría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {secretarias.map((secretaria) => (
-                        <SelectItem key={secretaria.id} value={secretaria.id}>
-                          {secretaria.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="estado">Estado</Label>
-                  <Select
-                    value={formData.estado}
-                    onValueChange={(value) => setFormData({...formData, estado: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="formulacion">Formulación</SelectItem>
-                      <SelectItem value="aprobacion">Aprobación</SelectItem>
-                      <SelectItem value="implementacion">Implementación</SelectItem>
-                      <SelectItem value="evaluacion">Evaluación</SelectItem>
-                      <SelectItem value="finalizada">Finalizada</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="fecha_inicio">Fecha Inicio</Label>
-                    <Input
-                      id="fecha_inicio"
-                      type="date"
-                      value={formData.fecha_inicio}
-                      onChange={(e) => setFormData({...formData, fecha_inicio: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="fecha_fin">Fecha Fin</Label>
-                    <Input
-                      id="fecha_fin"
-                      type="date"
-                      value={formData.fecha_fin}
-                      onChange={(e) => setFormData({...formData, fecha_fin: e.target.value})}
-                    />
-                  </div>
                 </div>
                 
                 <div className="flex justify-end space-x-2">
@@ -347,30 +236,15 @@ const Politicas = () => {
           </Dialog>
         </div>
 
-        {/* Filters */}
-        <div className="flex space-x-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar políticas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={selectedSecretaria} onValueChange={setSelectedSecretaria}>
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Filtrar por secretaría" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas las secretarías</SelectItem>
-              {secretarias.map((secretaria) => (
-                <SelectItem key={secretaria.id} value={secretaria.id}>
-                  {secretaria.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar políticas..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
 
         {/* Policies Grid */}
@@ -397,8 +271,8 @@ const Politicas = () => {
                     </Button>
                   </div>
                 </div>
-                <Badge variant={getEstadoBadgeVariant(politica.estado)}>
-                  {politica.estado.toUpperCase()}
+                <Badge variant="secondary">
+                  Política #{politica.numero_politica}
                 </Badge>
               </CardHeader>
               <CardContent>
@@ -408,31 +282,12 @@ const Politicas = () => {
                 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Secretaría:</span>
-                    <span>{politica.secretaria?.nombre || 'N/A'}</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
                     <span className="text-muted-foreground">Ponderación:</span>
-                    <span>{politica.ponderacion_total}%</span>
+                    <span>{politica.ponderacion_total || 0}%</span>
                   </div>
-                  
-                  {politica.fecha_inicio && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Inicio:</span>
-                      <span>{new Date(politica.fecha_inicio).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                  
-                  {politica.fecha_fin && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Fin:</span>
-                      <span>{new Date(politica.fecha_fin).toLocaleDateString()}</span>
-                    </div>
-                  )}
                 </div>
 
-                {politica.ponderacion_total > 0 && (
+                {(politica.ponderacion_total || 0) > 0 && (
                   <div className="mt-4">
                     <div className="flex justify-between text-sm mb-1">
                       <span>Avance</span>

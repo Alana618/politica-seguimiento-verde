@@ -16,12 +16,14 @@ import { Plus, Building2, Search, Edit, Trash2, ArrowLeft } from 'lucide-react';
 interface Proyecto {
   id: string;
   nombre: string;
-  descripcion: string;
+  objetivo: string;
+  codigo_bpin?: string;
+  secretaria_id: string;
   programa_id: string;
-  estado: string;
-  fecha_inicio: string;
-  fecha_fin: string;
-  presupuesto: number;
+  año_inicio: number;
+  año_fin: number;
+  created_at: string;
+  updated_at: string;
   programa?: { nombre: string };
 }
 
@@ -42,12 +44,12 @@ const Proyectos = () => {
 
   const [formData, setFormData] = useState({
     nombre: '',
-    descripcion: '',
+    objetivo: '',
+    codigo_bpin: '',
+    secretaria_id: '',
     programa_id: '',
-    estado: 'planificacion',
-    fecha_inicio: '',
-    fecha_fin: '',
-    presupuesto: 0
+    año_inicio: new Date().getFullYear(),
+    año_fin: new Date().getFullYear() + 4
   });
 
   useEffect(() => {
@@ -136,12 +138,12 @@ const Proyectos = () => {
     setEditingProyecto(proyecto);
     setFormData({
       nombre: proyecto.nombre,
-      descripcion: proyecto.descripcion,
+      objetivo: proyecto.objetivo,
+      codigo_bpin: proyecto.codigo_bpin || '',
+      secretaria_id: proyecto.secretaria_id,
       programa_id: proyecto.programa_id,
-      estado: proyecto.estado,
-      fecha_inicio: proyecto.fecha_inicio,
-      fecha_fin: proyecto.fecha_fin,
-      presupuesto: proyecto.presupuesto
+      año_inicio: proyecto.año_inicio,
+      año_fin: proyecto.año_fin
     });
     setIsDialogOpen(true);
   };
@@ -175,12 +177,12 @@ const Proyectos = () => {
   const resetForm = () => {
     setFormData({
       nombre: '',
-      descripcion: '',
+      objetivo: '',
+      codigo_bpin: '',
+      secretaria_id: '',
       programa_id: '',
-      estado: 'planificacion',
-      fecha_inicio: '',
-      fecha_fin: '',
-      presupuesto: 0
+      año_inicio: new Date().getFullYear(),
+      año_fin: new Date().getFullYear() + 4
     });
     setEditingProyecto(null);
     setIsDialogOpen(false);
@@ -188,7 +190,7 @@ const Proyectos = () => {
 
   const filteredProyectos = proyectos.filter(proyecto => {
     const matchesSearch = proyecto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         proyecto.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
+                         proyecto.objetivo.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPrograma = !selectedPrograma || proyecto.programa_id === selectedPrograma;
     return matchesSearch && matchesPrograma;
   });
@@ -260,11 +262,11 @@ const Proyectos = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="descripcion">Descripción</Label>
+                  <Label htmlFor="objetivo">Objetivo</Label>
                   <Textarea
-                    id="descripcion"
-                    value={formData.descripcion}
-                    onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+                    id="objetivo"
+                    value={formData.objetivo}
+                    onChange={(e) => setFormData({...formData, objetivo: e.target.value})}
                     rows={3}
                   />
                 </div>
@@ -289,53 +291,38 @@ const Proyectos = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="estado">Estado</Label>
-                  <Select
-                    value={formData.estado}
-                    onValueChange={(value) => setFormData({...formData, estado: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="planificacion">Planificación</SelectItem>
-                      <SelectItem value="en_ejecucion">En Ejecución</SelectItem>
-                      <SelectItem value="finalizado">Finalizado</SelectItem>
-                      <SelectItem value="suspendido">Suspendido</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="codigo_bpin">Código BPIN (opcional)</Label>
+                  <Input
+                    id="codigo_bpin"
+                    value={formData.codigo_bpin}
+                    onChange={(e) => setFormData({...formData, codigo_bpin: e.target.value})}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="fecha_inicio">Fecha Inicio</Label>
+                    <Label htmlFor="año_inicio">Año Inicio</Label>
                     <Input
-                      id="fecha_inicio"
-                      type="date"
-                      value={formData.fecha_inicio}
-                      onChange={(e) => setFormData({...formData, fecha_inicio: e.target.value})}
+                      id="año_inicio"
+                      type="number"
+                      value={formData.año_inicio}
+                      onChange={(e) => setFormData({...formData, año_inicio: parseInt(e.target.value) || new Date().getFullYear()})}
+                      min="2020"
+                      max="2050"
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="fecha_fin">Fecha Fin</Label>
+                    <Label htmlFor="año_fin">Año Fin</Label>
                     <Input
-                      id="fecha_fin"
-                      type="date"
-                      value={formData.fecha_fin}
-                      onChange={(e) => setFormData({...formData, fecha_fin: e.target.value})}
+                      id="año_fin"
+                      type="number"
+                      value={formData.año_fin}
+                      onChange={(e) => setFormData({...formData, año_fin: parseInt(e.target.value) || new Date().getFullYear() + 4})}
+                      min="2020"
+                      max="2050"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="presupuesto">Presupuesto</Label>
-                  <Input
-                    id="presupuesto"
-                    type="number"
-                    value={formData.presupuesto}
-                    onChange={(e) => setFormData({...formData, presupuesto: parseFloat(e.target.value) || 0})}
-                  />
                 </div>
                 
                 <div className="flex justify-end space-x-2">
@@ -401,13 +388,13 @@ const Proyectos = () => {
                     </Button>
                   </div>
                 </div>
-                <Badge variant={getEstadoBadgeVariant(proyecto.estado)}>
-                  {proyecto.estado.replace('_', ' ').toUpperCase()}
+                <Badge variant="secondary">
+                  {proyecto.año_inicio} - {proyecto.año_fin}
                 </Badge>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {proyecto.descripcion}
+                  {proyecto.objetivo}
                 </p>
                 
                 <div className="space-y-2 text-sm">
@@ -416,24 +403,17 @@ const Proyectos = () => {
                     <span>{proyecto.programa?.nombre || 'N/A'}</span>
                   </div>
                   
+                  {proyecto.codigo_bpin && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Código BPIN:</span>
+                      <span>{proyecto.codigo_bpin}</span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Presupuesto:</span>
-                    <span>${proyecto.presupuesto.toLocaleString()}</span>
+                    <span className="text-muted-foreground">Período:</span>
+                    <span>{proyecto.año_inicio} - {proyecto.año_fin}</span>
                   </div>
-                  
-                  {proyecto.fecha_inicio && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Inicio:</span>
-                      <span>{new Date(proyecto.fecha_inicio).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                  
-                  {proyecto.fecha_fin && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Fin:</span>
-                      <span>{new Date(proyecto.fecha_fin).toLocaleDateString()}</span>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>

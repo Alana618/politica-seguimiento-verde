@@ -14,11 +14,9 @@ import { Plus, Users, Search, Edit, Trash2, ArrowLeft, Building } from 'lucide-r
 interface Secretaria {
   id: string;
   nombre: string;
-  descripcion: string;
-  responsable: string;
-  telefono: string;
-  email: string;
-  direccion: string;
+  descripcion?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const Secretarias = () => {
@@ -31,11 +29,7 @@ const Secretarias = () => {
 
   const [formData, setFormData] = useState({
     nombre: '',
-    descripcion: '',
-    responsable: '',
-    telefono: '',
-    email: '',
-    direccion: ''
+    descripcion: ''
   });
 
   useEffect(() => {
@@ -106,11 +100,7 @@ const Secretarias = () => {
     setEditingSecretaria(secretaria);
     setFormData({
       nombre: secretaria.nombre,
-      descripcion: secretaria.descripcion || '',
-      responsable: secretaria.responsable || '',
-      telefono: secretaria.telefono || '',
-      email: secretaria.email || '',
-      direccion: secretaria.direccion || ''
+      descripcion: secretaria.descripcion || ''
     });
     setIsDialogOpen(true);
   };
@@ -144,19 +134,14 @@ const Secretarias = () => {
   const resetForm = () => {
     setFormData({
       nombre: '',
-      descripcion: '',
-      responsable: '',
-      telefono: '',
-      email: '',
-      direccion: ''
+      descripcion: ''
     });
     setEditingSecretaria(null);
     setIsDialogOpen(false);
   };
 
   const filteredSecretarias = secretarias.filter(secretaria =>
-    secretaria.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (secretaria.responsable && secretaria.responsable.toLowerCase().includes(searchTerm.toLowerCase()))
+    secretaria.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -225,45 +210,6 @@ const Secretarias = () => {
                   />
                 </div>
                 
-                <div>
-                  <Label htmlFor="responsable">Responsable</Label>
-                  <Input
-                    id="responsable"
-                    value={formData.responsable}
-                    onChange={(e) => setFormData({...formData, responsable: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="telefono">Teléfono</Label>
-                    <Input
-                      id="telefono"
-                      value={formData.telefono}
-                      onChange={(e) => setFormData({...formData, telefono: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="direccion">Dirección</Label>
-                  <Input
-                    id="direccion"
-                    value={formData.direccion}
-                    onChange={(e) => setFormData({...formData, direccion: e.target.value})}
-                  />
-                </div>
-                
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Cancelar
@@ -322,36 +268,6 @@ const Secretarias = () => {
                     {secretaria.descripcion}
                   </p>
                 )}
-                
-                <div className="space-y-2 text-sm">
-                  {secretaria.responsable && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Responsable:</span>
-                      <span>{secretaria.responsable}</span>
-                    </div>
-                  )}
-                  
-                  {secretaria.telefono && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Teléfono:</span>
-                      <span>{secretaria.telefono}</span>
-                    </div>
-                  )}
-                  
-                  {secretaria.email && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Email:</span>
-                      <span className="truncate">{secretaria.email}</span>
-                    </div>
-                  )}
-                  
-                  {secretaria.direccion && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Dirección:</span>
-                      <span className="text-right">{secretaria.direccion}</span>
-                    </div>
-                  )}
-                </div>
               </CardContent>
             </Card>
           ))}

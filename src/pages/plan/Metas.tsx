@@ -11,59 +11,72 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Target, Search, Edit, Trash2, ArrowLeft, TrendingUp } from 'lucide-react';
+import { Plus, Target, Search, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 interface Meta {
   id: string;
-  nombre: string;
-  descripcion: string;
-  proyecto_id: string;
-  valor_meta: number;
-  valor_actual: number;
+  secretaria_id: string;
+  gerencia_id: string;
+  linea_base?: number;
+  meta_cuatrienio?: number;
+  indicador_meta: string;
+  tipo_indicador: string;
+  producto_indicador?: string;
+  indicador_producto?: string;
+  numero_meta: string;
+  nombre_meta: string;
   unidad_medida: string;
-  fecha_limite: string;
-  proyecto?: { nombre: string };
+  created_at: string;
+  updated_at: string;
 }
 
-interface Proyecto {
+interface Secretaria {
+  id: string;
+  nombre: string;
+}
+
+interface Gerencia {
   id: string;
   nombre: string;
 }
 
 const Metas = () => {
   const [metas, setMetas] = useState<Meta[]>([]);
-  const [proyectos, setProyectos] = useState<Proyecto[]>([]);
+  const [secretarias, setSecretarias] = useState<Secretaria[]>([]);
+  const [gerencias, setGerencias] = useState<Gerencia[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProyecto, setSelectedProyecto] = useState('');
+  const [selectedSecretaria, setSelectedSecretaria] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMeta, setEditingMeta] = useState<Meta | null>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    nombre: '',
-    descripcion: '',
-    proyecto_id: '',
-    valor_meta: 0,
-    valor_actual: 0,
-    unidad_medida: '',
-    fecha_limite: ''
+    secretaria_id: '',
+    gerencia_id: '',
+    linea_base: 0,
+    meta_cuatrienio: 0,
+    indicador_meta: '',
+    tipo_indicador: 'resultado',
+    producto_indicador: '',
+    indicador_producto: '',
+    numero_meta: '',
+    nombre_meta: '',
+    unidad_medida: ''
   });
 
   useEffect(() => {
     fetchMetas();
-    fetchProyectos();
+    fetchSecretarias();
+    fetchGerencias();
   }, []);
 
   const fetchMetas = async () => {
     try {
       const { data, error } = await supabase
         .from('metas')
-        .select(`
-          *,
-          proyecto:proyectos(nombre)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -79,17 +92,31 @@ const Metas = () => {
     }
   };
 
-  const fetchProyectos = async () => {
+  const fetchSecretarias = async () => {
     try {
       const { data, error } = await supabase
-        .from('proyectos')
+        .from('secretarias')
         .select('id, nombre')
         .order('nombre');
 
       if (error) throw error;
-      setProyectos(data || []);
+      setSecretarias(data || []);
     } catch (error) {
-      console.error('Error fetching proyectos:', error);
+      console.error('Error fetching secretarias:', error);
+    }
+  };
+
+  const fetchGerencias = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('gerencias')
+        .select('id, nombre')
+        .order('nombre');
+
+      if (error) throw error;
+      setGerencias(data || []);
+    } catch (error) {
+      console.error('Error fetching gerencias:', error);
     }
   };
 
@@ -136,13 +163,17 @@ const Metas = () => {
   const handleEdit = (meta: Meta) => {
     setEditingMeta(meta);
     setFormData({
-      nombre: meta.nombre,
-      descripcion: meta.descripcion,
-      proyecto_id: meta.proyecto_id,
-      valor_meta: meta.valor_meta,
-      valor_actual: meta.valor_actual,
-      unidad_medida: meta.unidad_medida,
-      fecha_limite: meta.fecha_limite
+      secretaria_id: meta.secretaria_id,
+      gerencia_id: meta.gerencia_id,
+      linea_base: meta.linea_base || 0,
+      meta_cuatrienio: meta.meta_cuatrienio || 0,
+      indicador_meta: meta.indicador_meta,
+      tipo_indicador: meta.tipo_indicador,
+      producto_indicador: meta.producto_indicador || '',
+      indicador_producto: meta.indicador_producto || '',
+      numero_meta: meta.numero_meta,
+      nombre_meta: meta.nombre_meta,
+      unidad_medida: meta.unidad_medida
     });
     setIsDialogOpen(true);
   };
@@ -175,35 +206,32 @@ const Metas = () => {
 
   const resetForm = () => {
     setFormData({
-      nombre: '',
-      descripcion: '',
-      proyecto_id: '',
-      valor_meta: 0,
-      valor_actual: 0,
-      unidad_medida: '',
-      fecha_limite: ''
+      secretaria_id: '',
+      gerencia_id: '',
+      linea_base: 0,
+      meta_cuatrienio: 0,
+      indicador_meta: '',
+      tipo_indicador: 'resultado',
+      producto_indicador: '',
+      indicador_producto: '',
+      numero_meta: '',
+      nombre_meta: '',
+      unidad_medida: ''
     });
     setEditingMeta(null);
     setIsDialogOpen(false);
   };
 
   const filteredMetas = metas.filter(meta => {
-    const matchesSearch = meta.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         meta.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProyecto = !selectedProyecto || meta.proyecto_id === selectedProyecto;
-    return matchesSearch && matchesProyecto;
+    const matchesSearch = meta.nombre_meta.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         meta.indicador_meta.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSecretaria = !selectedSecretaria || meta.secretaria_id === selectedSecretaria;
+    return matchesSearch && matchesSecretaria;
   });
 
-  const calculateProgress = (valorActual: number, valorMeta: number) => {
-    if (valorMeta === 0) return 0;
-    return Math.min((valorActual / valorMeta) * 100, 100);
-  };
-
-  const getProgressBadgeVariant = (progress: number) => {
-    if (progress >= 100) return 'default';
-    if (progress >= 75) return 'secondary';
-    if (progress >= 50) return 'outline';
-    return 'destructive';
+  const calculateProgress = (linea_base: number, meta_cuatrienio: number) => {
+    if (meta_cuatrienio === 0) return 0;
+    return Math.min((linea_base / meta_cuatrienio) * 100, 100);
   };
 
   if (loading) {
@@ -222,7 +250,6 @@ const Metas = () => {
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link to="/plan">
@@ -245,7 +272,7 @@ const Metas = () => {
                 Nueva Meta
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
                   {editingMeta ? 'Editar Meta' : 'Nueva Meta'}
@@ -253,63 +280,71 @@ const Metas = () => {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="nombre">Nombre</Label>
+                  <Label htmlFor="nombre_meta">Nombre de la Meta</Label>
                   <Input
-                    id="nombre"
-                    value={formData.nombre}
-                    onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+                    id="nombre_meta"
+                    value={formData.nombre_meta}
+                    onChange={(e) => setFormData({...formData, nombre_meta: e.target.value})}
                     required
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="descripcion">Descripción</Label>
-                  <Textarea
-                    id="descripcion"
-                    value={formData.descripcion}
-                    onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
-                    rows={3}
+                  <Label htmlFor="numero_meta">Número de Meta</Label>
+                  <Input
+                    id="numero_meta"
+                    value={formData.numero_meta}
+                    onChange={(e) => setFormData({...formData, numero_meta: e.target.value})}
+                    required
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="proyecto_id">Proyecto</Label>
+                  <Label htmlFor="indicador_meta">Indicador</Label>
+                  <Textarea
+                    id="indicador_meta"
+                    value={formData.indicador_meta}
+                    onChange={(e) => setFormData({...formData, indicador_meta: e.target.value})}
+                    rows={3}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="tipo_indicador">Tipo de Indicador</Label>
                   <Select
-                    value={formData.proyecto_id}
-                    onValueChange={(value) => setFormData({...formData, proyecto_id: value})}
+                    value={formData.tipo_indicador}
+                    onValueChange={(value) => setFormData({...formData, tipo_indicador: value})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar proyecto" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {proyectos.map((proyecto) => (
-                        <SelectItem key={proyecto.id} value={proyecto.id}>
-                          {proyecto.nombre}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="resultado">Resultado</SelectItem>
+                      <SelectItem value="producto">Producto</SelectItem>
+                      <SelectItem value="gestion">Gestión</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="valor_meta">Valor Meta</Label>
+                    <Label htmlFor="linea_base">Línea Base</Label>
                     <Input
-                      id="valor_meta"
+                      id="linea_base"
                       type="number"
-                      value={formData.valor_meta}
-                      onChange={(e) => setFormData({...formData, valor_meta: parseFloat(e.target.value) || 0})}
-                      required
+                      value={formData.linea_base}
+                      onChange={(e) => setFormData({...formData, linea_base: parseFloat(e.target.value) || 0})}
                     />
                   </div>
                   
                   <div>
-                    <Label htmlFor="valor_actual">Valor Actual</Label>
+                    <Label htmlFor="meta_cuatrienio">Meta Cuatrienio</Label>
                     <Input
-                      id="valor_actual"
+                      id="meta_cuatrienio"
                       type="number"
-                      value={formData.valor_actual}
-                      onChange={(e) => setFormData({...formData, valor_actual: parseFloat(e.target.value) || 0})}
+                      value={formData.meta_cuatrienio}
+                      onChange={(e) => setFormData({...formData, meta_cuatrienio: parseFloat(e.target.value) || 0})}
                     />
                   </div>
                 </div>
@@ -321,16 +356,7 @@ const Metas = () => {
                     value={formData.unidad_medida}
                     onChange={(e) => setFormData({...formData, unidad_medida: e.target.value})}
                     placeholder="ej: personas, kilómetros, porcentaje"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="fecha_limite">Fecha Límite</Label>
-                  <Input
-                    id="fecha_limite"
-                    type="date"
-                    value={formData.fecha_limite}
-                    onChange={(e) => setFormData({...formData, fecha_limite: e.target.value})}
+                    required
                   />
                 </div>
                 
@@ -347,41 +373,24 @@ const Metas = () => {
           </Dialog>
         </div>
 
-        {/* Filters */}
-        <div className="flex space-x-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar metas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={selectedProyecto} onValueChange={setSelectedProyecto}>
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Filtrar por proyecto" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos los proyectos</SelectItem>
-              {proyectos.map((proyecto) => (
-                <SelectItem key={proyecto.id} value={proyecto.id}>
-                  {proyecto.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar metas..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
 
-        {/* Metas Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMetas.map((meta) => {
-            const progress = calculateProgress(meta.valor_actual, meta.valor_meta);
+            const progress = calculateProgress(meta.linea_base || 0, meta.meta_cuatrienio || 0);
             return (
               <Card key={meta.id} className="shadow-card hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{meta.nombre}</CardTitle>
+                    <CardTitle className="text-lg">{meta.nombre_meta}</CardTitle>
                     <div className="flex space-x-1">
                       <Button
                         variant="ghost"
@@ -399,38 +408,35 @@ const Metas = () => {
                       </Button>
                     </div>
                   </div>
-                  <Badge variant={getProgressBadgeVariant(progress)}>
-                    {progress.toFixed(1)}% completado
+                  <Badge variant="secondary">
+                    Meta #{meta.numero_meta}
                   </Badge>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    {meta.descripcion}
+                    {meta.indicador_meta}
                   </p>
                   
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tipo:</span>
+                      <span className="capitalize">{meta.tipo_indicador}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Meta:</span>
+                      <span>{meta.meta_cuatrienio} {meta.unidad_medida}</span>
+                    </div>
+                  </div>
+
+                  {(meta.meta_cuatrienio || 0) > 0 && (
+                    <div className="mt-4">
+                      <div className="flex justify-between text-sm mb-1">
                         <span>Progreso</span>
-                        <span>{meta.valor_actual} / {meta.valor_meta} {meta.unidad_medida}</span>
+                        <span>{progress.toFixed(1)}%</span>
                       </div>
                       <Progress value={progress} className="h-2" />
                     </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Proyecto:</span>
-                        <span>{meta.proyecto?.nombre || 'N/A'}</span>
-                      </div>
-                      
-                      {meta.fecha_limite && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Fecha Límite:</span>
-                          <span>{new Date(meta.fecha_limite).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             );

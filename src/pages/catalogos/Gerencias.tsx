@@ -10,16 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Building2, Search, Edit, Trash2, ArrowLeft, Building } from 'lucide-react';
+import { Plus, Building2, Search, Edit, Trash2, ArrowLeft } from 'lucide-react';
 
 interface Gerencia {
   id: string;
   nombre: string;
-  descripcion: string;
+  descripcion?: string;
   secretaria_id: string;
-  responsable: string;
-  telefono: string;
-  email: string;
+  created_at: string;
+  updated_at: string;
   secretaria?: { nombre: string };
 }
 
@@ -41,10 +40,7 @@ const Gerencias = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
-    secretaria_id: '',
-    responsable: '',
-    telefono: '',
-    email: ''
+    secretaria_id: ''
   });
 
   useEffect(() => {
@@ -134,10 +130,7 @@ const Gerencias = () => {
     setFormData({
       nombre: gerencia.nombre,
       descripcion: gerencia.descripcion || '',
-      secretaria_id: gerencia.secretaria_id,
-      responsable: gerencia.responsable || '',
-      telefono: gerencia.telefono || '',
-      email: gerencia.email || ''
+      secretaria_id: gerencia.secretaria_id
     });
     setIsDialogOpen(true);
   };
@@ -172,18 +165,14 @@ const Gerencias = () => {
     setFormData({
       nombre: '',
       descripcion: '',
-      secretaria_id: '',
-      responsable: '',
-      telefono: '',
-      email: ''
+      secretaria_id: ''
     });
     setEditingGerencia(null);
     setIsDialogOpen(false);
   };
 
   const filteredGerencias = gerencias.filter(gerencia => {
-    const matchesSearch = gerencia.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (gerencia.responsable && gerencia.responsable.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = gerencia.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSecretaria = !selectedSecretaria || gerencia.secretaria_id === selectedSecretaria;
     return matchesSearch && matchesSecretaria;
   });
@@ -273,36 +262,6 @@ const Gerencias = () => {
                   </Select>
                 </div>
                 
-                <div>
-                  <Label htmlFor="responsable">Responsable</Label>
-                  <Input
-                    id="responsable"
-                    value={formData.responsable}
-                    onChange={(e) => setFormData({...formData, responsable: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="telefono">Teléfono</Label>
-                    <Input
-                      id="telefono"
-                      value={formData.telefono}
-                      onChange={(e) => setFormData({...formData, telefono: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    />
-                  </div>
-                </div>
-                
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Cancelar
@@ -382,27 +341,6 @@ const Gerencias = () => {
                     <span className="text-muted-foreground">Secretaría:</span>
                     <span>{gerencia.secretaria?.nombre || 'N/A'}</span>
                   </div>
-                  
-                  {gerencia.responsable && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Responsable:</span>
-                      <span>{gerencia.responsable}</span>
-                    </div>
-                  )}
-                  
-                  {gerencia.telefono && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Teléfono:</span>
-                      <span>{gerencia.telefono}</span>
-                    </div>
-                  )}
-                  
-                  {gerencia.email && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Email:</span>
-                      <span className="truncate">{gerencia.email}</span>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
